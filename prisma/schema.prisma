@@ -1,0 +1,53 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  telegramId    Int       @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  points        Int       @default(0)
+  invitedUsers  String[]  @default([])
+  invitedBy     String?   @default("")
+  currentTime   DateTime? @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Additional fields for finance tracking
+  monthlyIncome Float     @default(0)
+  budgets       Budget[]
+  transactions  Transaction[]
+}
+
+model Budget {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  category  String
+  limit     Float
+  spent     Float    @default(0)
+  period    String   // 'monthly' or 'weekly'
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  category    String
+  type        String   // 'income' or 'expense'
+  description String?
+  date        DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
